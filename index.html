@@ -144,7 +144,7 @@
 
         if (isHost) {
             setTimeout(() => {
-                appendSysMsg('全员到齐后，请点击下方按钮激活题库系统。<br><button class="action-link-btn" onclick="publishNetMsg({type:\'START\'})">🚀 激活题库系统</button>');
+                appendSysMsg('全员到齐后，请点击下方按钮激活题库系统。<br><button class="action-link-btn" onclick="startSystem()">🚀 激活题库系统</button>');
             }, 1000);
         } else {
             appendSysMsg('等待 <b>主控</b> 激活系统...');
@@ -195,7 +195,7 @@
                 appendSysMsg(reply);
             } else {
                 if (isHost) {
-                    reply += '<button class="action-link-btn" onclick="publishNetMsg({type:\'NEXT\'})">进入下一关 ➡️</button>';
+                    reply += '<button class="action-link-btn" onclick="goNext()">进入下一关 ➡️</button>';
                 } else {
                     reply += '<br><span style="color:#888;font-size:12px;">等待 主控 开启下一关...</span>';
                 }
@@ -208,6 +208,14 @@
             appendSysMsg('⚠️ 答案不一致或存在错误，全员校验失败！<div class="hint-text"><b>💡 知识库提示：</b><br>' + questions[currentQIndex].hint + '</div>请大家在群里讨论后，重新点击上方卡片提交！');
         }
     });
+
+    function startSystem() {
+        publishNetMsg({ type: 'START' });
+    }
+
+    function goNext() {
+        publishNetMsg({ type: 'NEXT' });
+    }
 
     function publishNetMsg(payload) {
         client.publish(ROOM_TOPIC, JSON.stringify(payload));
