@@ -17,13 +17,15 @@
         }
         body { margin: 0; padding: 0; font-family: var(--font-family); background-color: var(--bg-color); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(244, 247, 254, 0.95); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
-        .login-box { background: white; padding: 30px; border-radius: 24px; box-shadow: var(--shadow-soft); text-align: center; width: 85%; max-width: 350px; }
+        .login-box { background: white; padding: 30px; border-radius: 24px; box-shadow: var(--shadow-soft); text-align: center; width: 85%; max-width: 380px; max-height: 80vh; overflow-y: auto; }
         .login-box h2 { color: var(--text-main); margin-top: 0; }
         .login-box p { color: var(--text-sub); font-size: 14px; margin-bottom: 20px; }
         .role-btn { width: 100%; padding: 15px; margin-bottom: 10px; border: 2px solid transparent; border-radius: 16px; background: #F8F9FA; font-size: 16px; font-weight: 800; color: var(--text-main); cursor: pointer; transition: 0.3s; }
-        .role-btn:hover { border-color: var(--primary); background: #F0EDFF; color: var(--primary); transform: translateY(-2px); }
+        .role-btn:hover:not(:disabled) { border-color: var(--primary); background: #F0EDFF; color: var(--primary); transform: translateY(-2px); }
+        .role-btn:disabled { opacity: 0.4; cursor: not-allowed; background: #e0e0e0; color: #999; text-decoration: line-through; }
         .role-btn.host-btn { background: linear-gradient(135deg, #FFD194 0%, #FFB347 100%); color: #5D4037; border: none; }
-        .role-btn.host-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,179,71,0.4); }
+        .role-btn.host-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,179,71,0.4); }
+        .role-btn.host-btn:disabled { background: #e0e0e0; color: #999; box-shadow: none; }
         .role-divider { font-size: 12px; color: var(--text-sub); margin: 15px 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
         .header { background: rgba(244, 247, 254, 0.8); backdrop-filter: blur(20px); padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; z-index: 10; border-bottom: 1px solid rgba(0,0,0,0.05); }
         .header-title { font-weight: 800; font-size: 17px; color: var(--text-main); }
@@ -48,7 +50,7 @@
         .options-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; width: 100%; }
         .option-btn { background: #F8F9FA; border: 2px solid transparent; border-radius: 16px; padding: 14px 10px; font-size: 16px; font-weight: 800; color: var(--text-main); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; transition: 0.2s;}
         .option-btn span { font-size: 12px; font-weight: 600; color: var(--text-sub); }
-        .option-btn:hover { border-color: var(--primary); background: #F0EDFF; color: var(--primary); }
+        .option-btn:hover:not(:disabled) { border-color: var(--primary); background: #F0EDFF; color: var(--primary); }
         .option-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .action-link-btn { margin-top: 12px; display: inline-block; padding: 14px 20px; background: var(--primary); color: white; border: none; border-radius: 20px; font-size: 15px; font-weight: 800; cursor: pointer; width: 100%; text-align: center; transition: 0.2s;}
         .action-link-btn:disabled { background: var(--text-sub); cursor: not-allowed; }
@@ -65,13 +67,15 @@
     <div id="loginOverlay">
         <div class="login-box">
             <h2>选择你的身份</h2>
-            <p>本房间需要4组齐聚才能通关<br>请与其他成员协商，不要选择重复的身份</p>
-            <button class="role-btn host-btn" id="btnHost">🎮 主控（不答题，控制流程）</button>
-            <div class="role-divider">— 答题小组 —</div>
-            <button class="role-btn" id="btnA">👥 小组A</button>
-            <button class="role-btn" id="btnB">👥 小组B</button>
-            <button class="role-btn" id="btnC">👥 小组C</button>
-            <button class="role-btn" id="btnD">👥 小组D</button>
+            <p>本房间需要6组齐聚才能通关<br>请与其他成员协商，不要选择重复的身份</p>
+            <button class="role-btn host-btn" id="btn-host">🎮 主控（不答题，控制流程）</button>
+            <div class="role-divider">\u2014 答题小组 \u2014</div>
+            <button class="role-btn" id="btn-A">👥 小组A</button>
+            <button class="role-btn" id="btn-B">👥 小组B</button>
+            <button class="role-btn" id="btn-C">👥 小组C</button>
+            <button class="role-btn" id="btn-D">👥 小组D</button>
+            <button class="role-btn" id="btn-E">👥 小组E</button>
+            <button class="role-btn" id="btn-F">👥 小组F</button>
         </div>
     </div>
 
@@ -95,64 +99,96 @@
     </div>
 
 <script>
+    // ===== 题库 =====
     var questions = [
-        { q: "<b>LEVEL 1</b><br>在长网造纸机成形过程中，浆料从流浆箱喷射到铜网上的角度主要影响的是什么？", ans: "B", hint: "喷射角度直接影响纤维在网上的分布和定向，进而影响纸张的纵横向强度比。", clue: "线索一：薄如蝉翼 🦋" },
-        { q: "<b>LEVEL 2</b><br>造纸成形工艺中，产生\u201c勾浆\u201d现象最可能导致纸张出现什么缺陷？", ans: "A", hint: "勾浆通常指纤维絮聚或杂质堵塞流浆箱唇口，导致浆料断流，在纸页上形成孔洞或透光点。", clue: "线索二：柔中带刚 🗡️" },
-        { q: "<b>LEVEL 3</b><br>长网造纸机网部脱水的主要原理是依靠什么？", ans: "B", hint: "网部脱水初期靠重力，后期主要靠真空箱的负压抽吸，使湿纸页成形。", clue: "线索三：两面有别 🎭" },
-        { q: "<b>LEVEL 4</b><br>在造纸湿部化学中，添加\u201c助留剂\u201d的主要作用是？", ans: "C", hint: "助留剂通常为高分子聚合物，通过絮凝作用使细小纤维和填料保留在纸页中，减少流失。", clue: "线索四：绝不导电 ⚡" },
-        { q: "<b>LEVEL 5</b><br>生产过程中，去除浆料中金属离子（如铁、铜）的关键工序通常是？", ans: "B", hint: "通过锥形除渣器、压力筛等筛选净化设备，利用离心或过滤原理去除浆料中的重杂质和金属颗粒。", clue: "线索五：浸水不散 💧" }
+        { q: "<b>LEVEL 1</b><br>\u5728\u957f\u7f51\u9020\u7eb8\u673a\u6210\u5f62\u8fc7\u7a0b\u4e2d\uff0c\u6d46\u6599\u4ece\u6d41\u6d46\u7bb1\u55b7\u5c04\u5230\u94dc\u7f51\u4e0a\u7684\u89d2\u5ea6\u4e3b\u8981\u5f71\u54cd\u7684\u662f\u4ec0\u4e48\uff1f", ans: "B", hint: "\u55b7\u5c04\u89d2\u5ea6\u76f4\u63a5\u5f71\u54cd\u7ea4\u7ef4\u5728\u7f51\u4e0a\u7684\u5206\u5e03\u548c\u5b9a\u5411\uff0c\u8fdb\u800c\u5f71\u54cd\u7eb8\u5f20\u7684\u7eb5\u6a2a\u5411\u5f3a\u5ea6\u6bd4\u3002", clue: "\u7ebf\u7d22\u4e00\uff1a\u8584\u5982\u8749\u7ffc \ud83e\udd8b" },
+        { q: "<b>LEVEL 2</b><br>\u9020\u7eb8\u6210\u5f62\u5de5\u827a\u4e2d\uff0c\u4ea7\u751f\u201c\u52fe\u6d46\u201d\u73b0\u8c61\u6700\u53ef\u80fd\u5bfc\u81f4\u7eb8\u5f20\u51fa\u73b0\u4ec0\u4e48\u7f3a\u9677\uff1f", ans: "A", hint: "\u52fe\u6d46\u901a\u5e38\u6307\u7ea4\u7ef4\u7d6e\u805a\u6216\u6742\u8d28\u5835\u585e\u6d41\u6d46\u7bb1\u5507\u53e3\uff0c\u5bfc\u81f4\u6d46\u6599\u65ad\u6d41\uff0c\u5728\u7eb8\u9875\u4e0a\u5f62\u6210\u5b54\u6d1e\u6216\u900f\u5149\u70b9\u3002", clue: "\u7ebf\u7d22\u4e8c\uff1a\u67d4\u4e2d\u5e26\u521a \ud83d\udde1\ufe0f" },
+        { q: "<b>LEVEL 3</b><br>\u957f\u7f51\u9020\u7eb8\u673a\u7f51\u90e8\u8131\u6c34\u7684\u4e3b\u8981\u539f\u7406\u662f\u4f9d\u9760\u4ec0\u4e48\uff1f", ans: "B", hint: "\u7f51\u90e8\u8131\u6c34\u521d\u671f\u9760\u91cd\u529b\uff0c\u540e\u671f\u4e3b\u8981\u9760\u771f\u7a7a\u7bb1\u7684\u8d1f\u538b\u62bd\u5438\uff0c\u4f7f\u6e7f\u7eb8\u9875\u6210\u5f62\u3002", clue: "\u7ebf\u7d22\u4e09\uff1a\u4e24\u9762\u6709\u522b \ud83c\udfad" },
+        { q: "<b>LEVEL 4</b><br>\u5728\u9020\u7eb8\u6e7f\u90e8\u5316\u5b66\u4e2d\uff0c\u6dfb\u52a0\u201c\u52a9\u7559\u5242\u201d\u7684\u4e3b\u8981\u4f5c\u7528\u662f\uff1f", ans: "C", hint: "\u52a9\u7559\u5242\u901a\u5e38\u4e3a\u9ad8\u5206\u5b50\u805a\u5408\u7269\uff0c\u901a\u8fc7\u7d6e\u51dd\u4f5c\u7528\u4f7f\u7ec6\u5c0f\u7ea4\u7ef4\u548c\u586b\u6599\u4fdd\u7559\u5728\u7eb8\u9875\u4e2d\uff0c\u51cf\u5c11\u6d41\u5931\u3002", clue: "\u7ebf\u7d22\u56db\uff1a\u7edd\u4e0d\u5bfc\u7535 \u26a1" },
+        { q: "<b>LEVEL 5</b><br>\u751f\u4ea7\u8fc7\u7a0b\u4e2d\uff0c\u53bb\u9664\u6d46\u6599\u4e2d\u91d1\u5c5e\u79bb\u5b50\uff08\u5982\u94c1\u3001\u94dc\uff09\u7684\u5173\u952e\u5de5\u5e8f\u901a\u5e38\u662f\uff1f", ans: "B", hint: "\u901a\u8fc7\u951f\u5f62\u9664\u6e23\u5668\u3001\u538b\u529b\u7b5b\u7b49\u7b5b\u9009\u51c0\u5316\u8bbe\u5907\uff0c\u5229\u7528\u79bb\u5fc3\u6216\u8fc7\u6ee4\u539f\u7406\u53bb\u9664\u6d46\u6599\u4e2d\u7684\u91cd\u6742\u8d28\u548c\u91d1\u5c5e\u9897\u7c92\u3002", clue: "\u7ebf\u7d22\u4e94\uff1a\u6d78\u6c34\u4e0d\u6563 \ud83d\udca7" }
     ];
     var qOptions = [
-        ["纸张的定量", "纤维定向排列", "纸张的含水量", "烘缸温度控制"],
-        ["透光点(孔洞)", "厚薄不均", "尘埃度过高", "静电积累"],
-        ["烘缸的热量蒸发", "真空箱抽吸和重力", "压辊的机械挤压", "刮刀的剪切力"],
-        ["提高纸张的白度", "防止细菌滋生", "提高细小纤维留着率", "增加纸面光滑度"],
-        ["打浆", "筛选和净化", "压光", "复卷"]
+        ["\u7eb8\u5f20\u7684\u5b9a\u91cf", "\u7ea4\u7ef4\u5b9a\u5411\u6392\u5217", "\u7eb8\u5f20\u7684\u542b\u6c34\u91cf", "\u70d8\u7f38\u6e29\u5ea6\u63a7\u5236"],
+        ["\u900f\u5149\u70b9(\u5b54\u6d1e)", "\u539a\u8584\u4e0d\u5747", "\u5c18\u57c3\u5ea6\u8fc7\u9ad8", "\u9759\u7535\u79ef\u7d2f"],
+        ["\u70d8\u7f38\u7684\u70ed\u91cf\u84b8\u53d1", "\u771f\u7a7a\u7bb1\u62bd\u5438\u548c\u91cd\u529b", "\u538b\u8f8a\u7684\u673a\u68b0\u6324\u538b", "\u522e\u5200\u7684\u526a\u5207\u529b"],
+        ["\u63d0\u9ad8\u7eb8\u5f20\u7684\u767d\u5ea6", "\u9632\u6b62\u7ec6\u83cc\u6ecb\u751f", "\u63d0\u9ad8\u7ec6\u5c0f\u7ea4\u7ef4\u7559\u7740\u7387", "\u589e\u52a0\u7eb8\u9762\u5149\u6ed1\u5ea6"],
+        ["\u6253\u6d46", "\u7b5b\u9009\u548c\u51c0\u5316", "\u538b\u5149", "\u590d\u5377"]
     ];
 
+    // ===== 全局状态 =====
     var myRole = "";
     var currentQIndex = 0;
     var roomAnswers = {};
-    var answerRoles = ["小组A", "小组B", "小组C", "小组D"];
+    var answerRoles = ["\u5c0f\u7ec4A", "\u5c0f\u7ec4B", "\u5c0f\u7ec4C", "\u5c0f\u7ec4D", "\u5c0f\u7ec4E", "\u5c0f\u7ec4F"];
     var isHost = false;
     var mqttReady = false;
+    var takenRoles = {}; // 已被选走的角色
 
     var chatArea = document.getElementById("chatArea");
     var inputBox = document.getElementById("inputBox");
 
-    // MQTT 连接
+    // ===== MQTT =====
     var client = mqtt.connect("wss://broker.emqx.io:8084/mqtt");
-    var ROOM_TOPIC = "dajiang_training_room_ABCD_01";
+    var ROOM_TOPIC = "dajiang_training_room_6group_01";
 
     client.on("connect", function() {
         mqttReady = true;
-        document.getElementById("statusText").innerText = "🟢 已连接服务器";
+        document.getElementById("statusText").innerText = "\ud83d\udfe2 \u5df2\u8fde\u63a5\u670d\u52a1\u5668";
         client.subscribe(ROOM_TOPIC);
+        // 进入后请求当前已选角色列表
+        publishNetMsg({ type: "REQUEST_ROLES" });
     });
 
     client.on("error", function(err) {
-        document.getElementById("statusText").innerText = "🔴 连接失败";
+        document.getElementById("statusText").innerText = "\ud83d\udd34 \u8fde\u63a5\u5931\u8d25";
         console.error("MQTT error:", err);
     });
 
-    // 绑定登录按钮事件
-    document.getElementById("btnHost").addEventListener("click", function() { joinRoom("主控"); });
-    document.getElementById("btnA").addEventListener("click", function() { joinRoom("小组A"); });
-    document.getElementById("btnB").addEventListener("click", function() { joinRoom("小组B"); });
-    document.getElementById("btnC").addEventListener("click", function() { joinRoom("小组C"); });
-    document.getElementById("btnD").addEventListener("click", function() { joinRoom("小组D"); });
+    // ===== 登录按钮绑定 =====
+    var roleMap = {
+        "btn-host": "\u4e3b\u63a7",
+        "btn-A": "\u5c0f\u7ec4A",
+        "btn-B": "\u5c0f\u7ec4B",
+        "btn-C": "\u5c0f\u7ec4C",
+        "btn-D": "\u5c0f\u7ec4D",
+        "btn-E": "\u5c0f\u7ec4E",
+        "btn-F": "\u5c0f\u7ec4F"
+    };
+
+    Object.keys(roleMap).forEach(function(btnId) {
+        document.getElementById(btnId).addEventListener("click", function() {
+            joinRoom(roleMap[btnId]);
+        });
+    });
+
+    function updateLoginButtons() {
+        Object.keys(roleMap).forEach(function(btnId) {
+            var role = roleMap[btnId];
+            var btn = document.getElementById(btnId);
+            if (takenRoles[role]) {
+                btn.disabled = true;
+                btn.textContent = (role === "\u4e3b\u63a7" ? "\ud83c\udfae " : "\ud83d\udc65 ") + role + " \uff08\u5df2\u52a0\u5165\uff09";
+            }
+        });
+    }
 
     function joinRoom(role) {
         if (!mqttReady) {
-            alert("服务器尚未连接，请稍等几秒再试...");
+            alert("\u670d\u52a1\u5668\u5c1a\u672a\u8fde\u63a5\uff0c\u8bf7\u7a0d\u7b49\u51e0\u79d2\u518d\u8bd5...");
+            return;
+        }
+        if (takenRoles[role]) {
+            alert("\u8be5\u89d2\u8272\u5df2\u88ab\u5176\u4ed6\u4eba\u9009\u62e9\uff0c\u8bf7\u9009\u62e9\u5176\u4ed6\u89d2\u8272\uff01");
             return;
         }
         myRole = role;
-        isHost = (role === "主控");
+        isHost = (role === "\u4e3b\u63a7");
         document.getElementById("loginOverlay").style.display = "none";
         document.getElementById("myRoleTag").innerText = myRole;
 
-        var joinText = isHost ? "主控已上线，准备开始实训！" : "设备连接成功，已就位！";
+        // 广播：我选了这个角色
+        var joinText = isHost ? "\u4e3b\u63a7\u5df2\u4e0a\u7ebf\uff0c\u51c6\u5907\u5f00\u59cb\u5b9e\u8bad\uff01" : "\u8bbe\u5907\u8fde\u63a5\u6210\u529f\uff0c\u5df2\u5c31\u4f4d\uff01";
+        publishNetMsg({ type: "ROLE_TAKEN", role: myRole });
         publishNetMsg({ type: "CHAT", role: myRole, text: joinText });
 
         if (isHost) {
@@ -160,12 +196,12 @@
                 showStartButton();
             }, 1000);
         } else {
-            appendSysMsg("等待 <b>主控</b> 激活系统...");
+            appendSysMsg("\u7b49\u5f85 <b>\u4e3b\u63a7</b> \u6fc0\u6d3b\u7cfb\u7edf...");
         }
     }
 
     function showStartButton() {
-        var html = '全员到齐后，请点击下方按钮激活题库系统。<br><button class="action-link-btn" id="startBtn">🚀 激活题库系统</button>';
+        var html = '\u5168\u5458\u5230\u9f50\u540e\uff0c\u8bf7\u70b9\u51fb\u4e0b\u65b9\u6309\u94ae\u6fc0\u6d3b\u9898\u5e93\u7cfb\u7edf\u3002<br><button class="action-link-btn" id="startBtn">\ud83d\ude80 \u6fc0\u6d3b\u9898\u5e93\u7cfb\u7edf</button>';
         appendSysMsg(html);
         setTimeout(function() {
             var btn = document.getElementById("startBtn");
@@ -173,52 +209,77 @@
         }, 100);
     }
 
-    // 接收消息
-    client.on("message", function(topic, message) {
-        var data = JSON.parse(message.toString());
+    // ===== 发送题目（主控和答题组看到不同内容） =====
+    function showQuestion(qIdx) {
+        var qText = "<b>\u7cfb\u7edf\u901a\u77e5</b>\uff1a\u8fdb\u5165\u7b2c " + (qIdx + 1) + " \u5173\uff01<br><br>" + questions[qIdx].q;
 
+        if (isHost) {
+            qText += '<br><br><span style="color:var(--text-sub);font-size:13px;">\u23f3 \u7b49\u5f85\u516d\u7ec4\u63d0\u4ea4\u7b54\u6848...</span>';
+            appendSysMsg(qText);
+        } else {
+            qText += getOptionsHTML(qIdx);
+            appendSysMsg(qText);
+            bindOptionButtons();
+        }
+    }
+
+    // ===== 接收消息 =====
+    client.on("message", function(topic, message) {
+        var data;
+        try { data = JSON.parse(message.toString()); } catch(e) { return; }
+
+        // 角色被选走
+        if (data.type === "ROLE_TAKEN") {
+            takenRoles[data.role] = true;
+            updateLoginButtons();
+            return;
+        }
+
+        // 有人请求已选角色列表，如果我已选角色就广播回去
+        if (data.type === "REQUEST_ROLES") {
+            if (myRole) {
+                publishNetMsg({ type: "ROLE_TAKEN", role: myRole });
+            }
+            return;
+        }
+
+        // 聊天消息
         if (data.type === "CHAT") {
             appendUserMsg(data.role, data.text);
         }
 
+        // 开始 / 下一题
         else if (data.type === "START" || data.type === "NEXT") {
             if (data.type === "START") currentQIndex = 0;
             else currentQIndex++;
 
             roomAnswers = {};
             disableOldButtons();
-
-            var qText = "<b>系统通知</b>：进入第 " + (currentQIndex + 1) + " 关！<br><br>" + questions[currentQIndex].q;
-
-            if (isHost) {
-                qText += '<br><br><span style="color:var(--text-sub);font-size:13px;">⏳ 等待四组提交答案...</span>';
-                appendSysMsg(qText);
-            } else {
-                qText += getOptionsHTML(currentQIndex);
-                appendSysMsg(qText);
-                bindOptionButtons();
-            }
+            showQuestion(currentQIndex);
         }
 
+        // 有人提交答案
         else if (data.type === "ANSWER") {
             roomAnswers[data.role] = data.ans;
-            appendUserMsg(data.role, "提交了答案：<b>选项 " + data.ans + "</b>");
+            appendUserMsg(data.role, "\u63d0\u4ea4\u4e86\u7b54\u6848\uff1a<b>\u9009\u9879 " + data.ans + "</b>");
 
+            // 主控收齐6组答案后判卷
             if (isHost && Object.keys(roomAnswers).length === answerRoles.length) {
                 checkAnswers();
             }
         }
 
+        // 判卷通过
         else if (data.type === "JUDGE_PASS") {
-            var reply = '四组答案一致且正确，校验通过 ✅<div class="highlight-clue">🔑 获得 ' + questions[currentQIndex].clue + '</div>';
+            var reply = '\u56db\u7ec4\u7b54\u6848\u4e00\u81f4\u4e14\u6b63\u786e\uff0c\u6821\u9a8c\u901a\u8fc7 \u2705<div class="highlight-clue">\ud83d\udd11 \u83b7\u5f97 ' + questions[currentQIndex].clue + '</div>';
             if (currentQIndex === questions.length - 1) {
-                reply += '<br><br>🎉 <b>实训圆满成功！</b><br>你们已集齐所有秘籍，密室大门已开启！';
+                reply += '<br><br>\ud83c\udf89 <b>\u5b9e\u8bad\u5706\u6ee1\u6210\u529f\uff01</b><br>\u4f60\u4eec\u5df2\u96c6\u9f50\u6240\u6709\u79d8\u7c4d\uff0c\u5bc6\u5ba4\u5927\u95e8\u5df2\u5f00\u542f\uff01';
                 appendSysMsg(reply);
             } else {
                 if (isHost) {
-                    reply += '<button class="action-link-btn" id="nextBtn">进入下一关 ➡️</button>';
+                    reply += '<button class="action-link-btn" id="nextBtn">\u8fdb\u5165\u4e0b\u4e00\u5173 \u27a1\ufe0f</button>';
                 } else {
-                    reply += '<br><span style="color:#888;font-size:12px;">等待 主控 开启下一关...</span>';
+                    reply += '<br><span style="color:#888;font-size:12px;">\u7b49\u5f85 \u4e3b\u63a7 \u5f00\u542f\u4e0b\u4e00\u5173...</span>';
                 }
                 appendSysMsg(reply);
                 if (isHost) {
@@ -230,13 +291,20 @@
             }
         }
 
+        // 判卷失败 -> 给提示 + 自动重新发题
         else if (data.type === "JUDGE_FAIL") {
             roomAnswers = {};
-            var failHtml = '⚠️ 答案不一致或存在错误，全员校验失败！<div class="hint-text"><b>💡 知识库提示：</b><br>' + questions[currentQIndex].hint + '</div>请大家在群里讨论后，重新点击上方卡片提交！';
-            appendSysMsg(failHtml);
+            disableOldButtons();
+            appendSysMsg('\u26a0\ufe0f \u7b54\u6848\u4e0d\u4e00\u81f4\u6216\u5b58\u5728\u9519\u8bef\uff0c\u5168\u5458\u6821\u9a8c\u5931\u8d25\uff01<div class="hint-text"><b>\ud83d\udca1 \u77e5\u8bc6\u5e93\u63d0\u793a\uff1a</b><br>' + questions[currentQIndex].hint + '</div>\u8bf7\u5927\u5bb6\u8ba8\u8bba\u540e\u91cd\u65b0\u4f5c\u7b54\uff1a');
+
+            // 自动重新发送当前题目
+            setTimeout(function() {
+                showQuestion(currentQIndex);
+            }, 500);
         }
     });
 
+    // ===== 工具函数 =====
     function publishNetMsg(payload) {
         if (mqttReady) {
             client.publish(ROOM_TOPIC, JSON.stringify(payload));
@@ -295,7 +363,7 @@
     function appendSysMsg(text) {
         var row = document.createElement("div");
         row.className = "message-row left msg-sys";
-        row.innerHTML = '<div class="avatar">AI</div><div class="content-div"><div class="name-tag">AI 导师</div><div class="bubble">' + text + '</div></div>';
+        row.innerHTML = '<div class="avatar">AI</div><div class="content-div"><div class="name-tag">AI \u5bfc\u5e08</div><div class="bubble">' + text + '</div></div>';
         chatArea.appendChild(row);
         chatArea.scrollTop = chatArea.scrollHeight;
     }
@@ -303,10 +371,10 @@
     function appendUserMsg(role, text) {
         var row = document.createElement("div");
         var isMe = (role === myRole);
-        var isMsgHost = (role === "主控");
+        var isMsgHost = (role === "\u4e3b\u63a7");
         row.className = "message-row " + (isMe ? "right msg-me" : "left " + (isMsgHost ? "msg-host" : "msg-other"));
 
-        var avatarText = (role === "主控") ? "🎮" : role.replace("小组", "");
+        var avatarText = (role === "\u4e3b\u63a7") ? "\ud83c\udfae" : role.replace("\u5c0f\u7ec4", "");
 
         if (isMe) {
             row.innerHTML = '<div class="content-div"><div class="bubble">' + text + '</div></div>';
@@ -321,7 +389,7 @@
         document.querySelectorAll(".option-btn, .action-link-btn").forEach(function(b) { b.disabled = true; });
     }
 
-    // 绑定发送按钮和回车
+    // ===== 发送按钮 & 回车 =====
     document.getElementById("sendBtn").addEventListener("click", sendChat);
     inputBox.addEventListener("keypress", function(e) { if (e.key === "Enter") sendChat(); });
 </script>
