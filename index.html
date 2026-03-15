@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>造纸产线 4人联机实训</title>
-    <!-- 引入 MQTT 物联网通讯库 (核心：实现多人实时联机) -->
+    <title>造纸产线 联机实训</title>
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <style>
-        /* ================= Dribbble 现代设计风格 ================= */
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 
         :root {
@@ -21,76 +19,74 @@
 
         body { margin: 0; padding: 0; font-family: var(--font-family); background-color: var(--bg-color); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* ======== 登录遮罩层 (选择身份) ======== */
         #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(244, 247, 254, 0.95); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
         .login-box { background: white; padding: 30px; border-radius: 24px; box-shadow: var(--shadow-soft); text-align: center; width: 85%; max-width: 350px; }
         .login-box h2 { color: var(--text-main); margin-top: 0; }
         .login-box p { color: var(--text-sub); font-size: 14px; margin-bottom: 20px; }
         .role-btn { width: 100%; padding: 15px; margin-bottom: 10px; border: 2px solid transparent; border-radius: 16px; background: #F8F9FA; font-size: 16px; font-weight: 800; color: var(--text-main); cursor: pointer; transition: 0.3s; }
         .role-btn:hover { border-color: var(--primary); background: #F0EDFF; color: var(--primary); transform: translateY(-2px); }
+        .role-btn.host-btn { background: linear-gradient(135deg, #FFD194 0%, #FFB347 100%); color: #5D4037; border: none; }
+        .role-btn.host-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,179,71,0.4); }
+        .role-divider { font-size: 12px; color: var(--text-sub); margin: 15px 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
 
-        /* 顶部导航 */
         .header { background: rgba(244, 247, 254, 0.8); backdrop-filter: blur(20px); padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; z-index: 10; border-bottom: 1px solid rgba(0,0,0,0.05); }
         .header-title { font-weight: 800; font-size: 17px; color: var(--text-main); }
         .header-sub { font-size: 12px; color: var(--success); font-weight: 700; }
-        
-        /* 聊天区域 */
+
         .chat-area { flex: 1; padding: 20px 20px 100px 20px; overflow-y: auto; scroll-behavior: smooth; }
         .message-row { display: flex; margin-bottom: 24px; align-items: flex-end; animation: slideUp 0.3s ease; }
         @keyframes slideUp { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)} }
         .message-row.left { flex-direction: row; justify-content: flex-start; }
         .message-row.right { flex-direction: row-reverse; justify-content: flex-start; }
-        
+
         .avatar { width: 36px; height: 36px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: white; flex-shrink: 0; margin-bottom: 4px; box-shadow: var(--shadow-soft); }
         .content-div { max-width: 80%; display: flex; flex-direction: column; }
         .message-row.left .content-div { align-items: flex-start; margin-left: 12px; }
         .message-row.right .content-div { align-items: flex-end; margin-right: 12px; }
         .name-tag { font-size: 12px; font-weight: 700; color: var(--text-sub); margin-bottom: 6px; margin-left: 4px; }
-        
-        /* 气泡样式 */
+
         .bubble { padding: 14px 18px; position: relative; font-size: 15px; font-weight: 600; line-height: 1.6; word-wrap: break-word; box-shadow: var(--shadow-soft); }
         .msg-sys .avatar { background: linear-gradient(135deg, #FF758C 0%, #FF7EB3 100%); font-size: 12px;}
         .msg-other .avatar { background: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%); }
+        .msg-host .avatar { background: linear-gradient(135deg, #FFD194 0%, #FFB347 100%); }
         .message-row.left .bubble { background-color: var(--card-bg); color: var(--text-main); border-radius: 20px 20px 20px 4px; }
-        
+
         .msg-me .avatar { display: none; }
         .message-row.right .bubble { background: linear-gradient(135deg, var(--primary) 0%, #9D89FF 100%); color: #ffffff; border-radius: 20px 20px 4px 20px; }
 
-        /* 卡片与按钮 */
         .options-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; width: 100%; }
         .option-btn { background: #F8F9FA; border: 2px solid transparent; border-radius: 16px; padding: 14px 10px; font-size: 16px; font-weight: 800; color: var(--text-main); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; transition: 0.2s;}
         .option-btn span { font-size: 12px; font-weight: 600; color: var(--text-sub); }
         .option-btn:hover { border-color: var(--primary); background: #F0EDFF; color: var(--primary); }
         .option-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        
+
         .action-link-btn { margin-top: 12px; display: inline-block; padding: 14px 20px; background: var(--primary); color: white; border: none; border-radius: 20px; font-size: 15px; font-weight: 800; cursor: pointer; width: 100%; text-align: center; transition: 0.2s;}
         .action-link-btn:disabled { background: var(--text-sub); cursor: not-allowed; }
 
-        /* 底部输入框 */
         .footer-wrapper { position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 20px 25px 20px; background: linear-gradient(to bottom, rgba(244,247,254,0), rgba(244,247,254,1) 40%); }
         .footer { background-color: var(--card-bg); border-radius: 25px; padding: 6px 6px 6px 15px; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 30px rgba(112, 144, 176, 0.15); }
         .input-box { flex: 1; border: none; outline: none; font-size: 15px; font-weight: 600; background: transparent; padding: 10px 0; color: var(--text-main); font-family: var(--font-family); }
         .send-btn { background: var(--primary); color: white; border: none; width: 40px; height: 40px; border-radius: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
-        
+
         .highlight-clue { display: block; margin-top: 12px; padding: 12px 16px; border-radius: 16px; background: linear-gradient(135deg, #FFD194 0%, #70E1F5 100%); color: #1A365D; font-weight: 800; text-align: center; }
         .hint-text { color: var(--danger); font-size: 13px; font-weight: 700; margin-top: 10px; background: #FFF0F0; padding: 10px; border-radius: 12px; border-left: 4px solid var(--danger);}
     </style>
 </head>
 <body>
 
-    <!-- 登录遮罩 -->
     <div id="loginOverlay">
         <div class="login-box">
-            <h2>选择你的小组身份</h2>
+            <h2>选择你的身份</h2>
             <p>本房间需要4组齐聚才能通关<br>请与其他成员协商，不要选择重复的身份</p>
-            <button class="role-btn" onclick="joinRoom('小组A')">👑 小组A (主控台)</button>
+            <button class="role-btn host-btn" onclick="joinRoom('主控')">🎮 主控（不答题，控制流程）</button>
+            <div class="role-divider">— 答题小组 —</div>
+            <button class="role-btn" onclick="joinRoom('小组A')">👥 小组A</button>
             <button class="role-btn" onclick="joinRoom('小组B')">👥 小组B</button>
             <button class="role-btn" onclick="joinRoom('小组C')">👥 小组C</button>
             <button class="role-btn" onclick="joinRoom('小组D')">👥 小组D</button>
         </div>
     </div>
 
-    <!-- 顶部 -->
     <div class="header">
         <div style="display:flex; flex-direction:column;">
             <span class="header-title">造纸产线联机实训</span>
@@ -111,110 +107,108 @@
     </div>
 
 <script>
-    // 题库与配置
-    const questions =[
+    const questions = [
         { q: "<b>LEVEL 1</b><br>在长网造纸机成形过程中，浆料从流浆箱喷射到铜网上的角度主要影响的是什么？", ans: "B", hint: "喷射角度直接影响纤维在网上的分布和定向，进而影响纸张的纵横向强度比。", clue: "线索一：薄如蝉翼 🦋" },
-        { q: "<b>LEVEL 2</b><br>造纸成形工艺中，产生“勾浆”现象最可能导致纸张出现什么缺陷？", ans: "A", hint: "勾浆通常指纤维絮聚或杂质堵塞流浆箱唇口，导致浆料断流，在纸页上形成孔洞或透光点。", clue: "线索二：柔中带刚 🗡️" },
+        { q: "<b>LEVEL 2</b><br>造纸成形工艺中，产生"勾浆"现象最可能导致纸张出现什么缺陷？", ans: "A", hint: "勾浆通常指纤维絮聚或杂质堵塞流浆箱唇口，导致浆料断流，在纸页上形成孔洞或透光点。", clue: "线索二：柔中带刚 🗡️" },
         { q: "<b>LEVEL 3</b><br>长网造纸机网部脱水的主要原理是依靠什么？", ans: "B", hint: "网部脱水初期靠重力，后期主要靠真空箱的负压抽吸，使湿纸页成形。", clue: "线索三：两面有别 🎭" },
-        { q: "<b>LEVEL 4</b><br>在造纸湿部化学中，添加“助留剂”的主要作用是？", ans: "C", hint: "助留剂通常为高分子聚合物，通过絮凝作用使细小纤维和填料保留在纸页中，减少流失。", clue: "线索四：绝不导电 ⚡" },
+        { q: "<b>LEVEL 4</b><br>在造纸湿部化学中，添加"助留剂"的主要作用是？", ans: "C", hint: "助留剂通常为高分子聚合物，通过絮凝作用使细小纤维和填料保留在纸页中，减少流失。", clue: "线索四：绝不导电 ⚡" },
         { q: "<b>LEVEL 5</b><br>生产过程中，去除浆料中金属离子（如铁、铜）的关键工序通常是？", ans: "B", hint: "通过锥形除渣器、压力筛等筛选净化设备，利用离心或过滤原理去除浆料中的重杂质和金属颗粒。", clue: "线索五：浸水不散 💧" }
     ];
-    const qOptions = [["纸张的定量", "纤维定向排列", "纸张的含水量", "烘缸温度控制"],["透光点(孔洞)", "厚薄不均", "尘埃度过高", "静电积累"],["烘缸的热量蒸发", "真空箱抽吸和重力", "压辊的机械挤压", "刮刀的剪切力"],["提高纸张的白度", "防止细菌滋生", "提高细小纤维留着率", "增加纸面光滑度"],["打浆", "筛选和净化", "压光", "复卷"]
+    const qOptions = [
+        ["纸张的定量", "纤维定向排列", "纸张的含水量", "烘缸温度控制"],
+        ["透光点(孔洞)", "厚薄不均", "尘埃度过高", "静电积累"],
+        ["烘缸的热量蒸发", "真空箱抽吸和重力", "压辊的机械挤压", "刮刀的剪切力"],
+        ["提高纸张的白度", "防止细菌滋生", "提高细小纤维留着率", "增加纸面光滑度"],
+        ["打浆", "筛选和净化", "压光", "复卷"]
     ];
 
-    // 全局变量
     let myRole = "";
     let currentQIndex = 0;
-    let roomAnswers = {}; // 记录大家当前题目的答案
-    let requiredRoles =['小组A', '小组B', '小组C', '小组D'];
-    
-    // MQTT 通讯配置 (使用免费公共节点)
+    let roomAnswers = {};
+    let answerRoles = ['小组A', '小组B', '小组C', '小组D'];
+    let isHost = false;
+
     const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
-    const ROOM_TOPIC = 'dajiang_training_room_ABCD_01'; // 房间号
+    const ROOM_TOPIC = 'dajiang_training_room_ABCD_01';
 
     const chatArea = document.getElementById('chatArea');
     const inputBox = document.getElementById('inputBox');
 
-    // 加入房间
     function joinRoom(role) {
         myRole = role;
+        isHost = (role === '主控');
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('myRoleTag').innerText = myRole;
-        
-        // 告诉群里我加入了
-        publishNetMsg({ type: 'CHAT', role: myRole, text: `设备连接成功，已就位！` });
 
-        // 如果我是小组A，我负责发初始化指令
-        if (myRole === '小组A') {
+        publishNetMsg({ type: 'CHAT', role: myRole, text: isHost ? '主控已上线，准备开始实训！' : '设备连接成功，已就位！' });
+
+        if (isHost) {
             setTimeout(() => {
-                appendSysMsg(`全员到齐后，请 <b>小组A</b> 点击下方按钮激活题库系统。<br><button class="action-link-btn" onclick="publishNetMsg({type:'START'})">🚀 激活题库系统</button>`);
+                appendSysMsg('全员到齐后，请点击下方按钮激活题库系统。<br><button class="action-link-btn" onclick="publishNetMsg({type:\'START\'})">🚀 激活题库系统</button>');
             }, 1000);
         } else {
-            appendSysMsg(`等待 <b>小组A</b> 激活系统...`);
+            appendSysMsg('等待 <b>主控</b> 激活系统...');
         }
     }
 
-    // 网络连接状态
     client.on('connect', () => {
         document.getElementById('statusText').innerText = '🟢 已连接服务器';
         client.subscribe(ROOM_TOPIC);
     });
 
-    // ======== 接收网络消息 (核心联机逻辑) ========
     client.on('message', (topic, message) => {
         const data = JSON.parse(message.toString());
 
-        // 1. 普通聊天消息
         if (data.type === 'CHAT') {
             appendUserMsg(data.role, data.text);
         }
-        
-        // 2. 开始/下一题指令
+
         else if (data.type === 'START' || data.type === 'NEXT') {
             if (data.type === 'START') currentQIndex = 0;
             else currentQIndex++;
-            
-            roomAnswers = {}; // 清空上一题答案
-            disableOldButtons(); // 锁定历史按钮
 
-            appendSysMsg(`<b>系统通知</b>：进入第 ${currentQIndex + 1} 关！<br><br>${questions[currentQIndex].q}` + getOptionsHTML(currentQIndex));
+            roomAnswers = {};
+            disableOldButtons();
+
+            if (isHost) {
+                // 主控看到题目但没有选项按钮
+                appendSysMsg('<b>系统通知</b>：进入第 ' + (currentQIndex + 1) + ' 关！<br><br>' + questions[currentQIndex].q + '<br><br><span style="color:var(--text-sub);font-size:13px;">⏳ 等待四组提交答案...</span>');
+            } else {
+                appendSysMsg('<b>系统通知</b>：进入第 ' + (currentQIndex + 1) + ' 关！<br><br>' + questions[currentQIndex].q + getOptionsHTML(currentQIndex));
+            }
         }
 
-        // 3. 有人提交了答案
         else if (data.type === 'ANSWER') {
             roomAnswers[data.role] = data.ans;
-            appendUserMsg(data.role, `提交了答案：<b>选项 ${data.ans}</b>`);
+            appendUserMsg(data.role, '提交了答案：<b>选项 ' + data.ans + '</b>');
 
-            // 【小组A的专属任务】：当小组A的手机收集齐了4个人的答案，由小组A手机负责核对并发布结果！
-            if (myRole === '小组A' && Object.keys(roomAnswers).length === requiredRoles.length) {
+            // 主控端负责判卷
+            if (isHost && Object.keys(roomAnswers).length === answerRoles.length) {
                 checkAnswers();
             }
         }
 
-        // 4. 判卷结果
         else if (data.type === 'JUDGE_PASS') {
-            let reply = `四组答案一致且正确，校验通过 ✅<div class="highlight-clue">🔑 获得 ${questions[currentQIndex].clue}</div>`;
+            let reply = '四组答案一致且正确，校验通过 ✅<div class="highlight-clue">🔑 获得 ' + questions[currentQIndex].clue + '</div>';
             if (currentQIndex === questions.length - 1) {
-                reply += `<br><br>🎉 <b>实训圆满成功！</b><br>你们已集齐所有秘籍，密室大门已开启！`;
+                reply += '<br><br>🎉 <b>实训圆满成功！</b><br>你们已集齐所有秘籍，密室大门已开启！';
                 appendSysMsg(reply);
             } else {
-                if (myRole === '小组A') {
-                    reply += `<button class="action-link-btn" onclick="publishNetMsg({type:'NEXT'})">进入下一关 ➡️</button>`;
+                if (isHost) {
+                    reply += '<button class="action-link-btn" onclick="publishNetMsg({type:\'NEXT\'})">进入下一关 ➡️</button>';
                 } else {
-                    reply += `<br><span style="color:#888;font-size:12px;">等待 小组A 开启下一关...</span>`;
+                    reply += '<br><span style="color:#888;font-size:12px;">等待 主控 开启下一关...</span>';
                 }
                 appendSysMsg(reply);
             }
         }
 
-        // 5. 答错通知
         else if (data.type === 'JUDGE_FAIL') {
-            roomAnswers = {}; // 清空重来
-            appendSysMsg(`⚠️ 答案不一致或存在错误，全员校验失败！<div class="hint-text"><b>💡 知识库提示：</b><br>${questions[currentQIndex].hint}</div>请大家在群里讨论后，重新点击上方卡片提交！`);
+            roomAnswers = {};
+            appendSysMsg('⚠️ 答案不一致或存在错误，全员校验失败！<div class="hint-text"><b>💡 知识库提示：</b><br>' + questions[currentQIndex].hint + '</div>请大家在群里讨论后，重新点击上方卡片提交！');
         }
     });
 
-    // ======== 发送网络消息 ========
     function publishNetMsg(payload) {
         client.publish(ROOM_TOPIC, JSON.stringify(payload));
     }
@@ -228,44 +222,36 @@
     }
 
     function selectOption(ans) {
-        // 如果我已经答过了，就不让重复点
-        if (roomAnswers[myRole]) return; 
+        if (isHost) return; // 主控不能答题
+        if (roomAnswers[myRole]) return;
         publishNetMsg({ type: 'ANSWER', role: myRole, ans: ans });
     }
 
-    // 小组A核对答案逻辑
     function checkAnswers() {
-        let isAllCorrect = true;
-        for (let r of requiredRoles) {
+        let allCorrect = true;
+        for (let r of answerRoles) {
             if (roomAnswers[r] !== questions[currentQIndex].ans) {
-                isAllCorrect = false;
+                allCorrect = false;
                 break;
             }
         }
-        if (isAllCorrect) {
-            publishNetMsg({ type: 'JUDGE_PASS' });
-        } else {
-            publishNetMsg({ type: 'JUDGE_FAIL' });
-        }
+        publishNetMsg({ type: allCorrect ? 'JUDGE_PASS' : 'JUDGE_FAIL' });
     }
 
-    // ======== UI 渲染辅助方法 ========
     function getOptionsHTML(qIndex) {
         const opts = qOptions[qIndex];
-        return `
-            <div class="options-container">
-                <button class="option-btn" onclick="selectOption('A')">A<span>${opts[0]}</span></button>
-                <button class="option-btn" onclick="selectOption('B')">B<span>${opts[1]}</span></button>
-                <button class="option-btn" onclick="selectOption('C')">C<span>${opts[2]}</span></button>
-                <button class="option-btn" onclick="selectOption('D')">D<span>${opts[3]}</span></button>
-            </div>
-        `;
+        return '<div class="options-container">' +
+            '<button class="option-btn" onclick="selectOption(\'A\')">A<span>' + opts[0] + '</span></button>' +
+            '<button class="option-btn" onclick="selectOption(\'B\')">B<span>' + opts[1] + '</span></button>' +
+            '<button class="option-btn" onclick="selectOption(\'C\')">C<span>' + opts[2] + '</span></button>' +
+            '<button class="option-btn" onclick="selectOption(\'D\')">D<span>' + opts[3] + '</span></button>' +
+            '</div>';
     }
 
     function appendSysMsg(text) {
         const row = document.createElement('div');
-        row.className = `message-row left msg-sys`;
-        row.innerHTML = `<div class="avatar">AI</div><div class="content-div"><div class="name-tag">AI 导师</div><div class="bubble">${text}</div></div>`;
+        row.className = 'message-row left msg-sys';
+        row.innerHTML = '<div class="avatar">AI</div><div class="content-div"><div class="name-tag">AI 导师</div><div class="bubble">' + text + '</div></div>';
         chatArea.appendChild(row);
         chatArea.scrollTop = chatArea.scrollHeight;
     }
@@ -273,15 +259,15 @@
     function appendUserMsg(role, text) {
         const row = document.createElement('div');
         const isMe = (role === myRole);
-        row.className = `message-row ${isMe ? 'right msg-me' : 'left msg-other'}`;
-        
-        // 提取 ABCD 作为头像文字
-        let avatarText = role.replace("小组", ""); 
+        const isMsgHost = (role === '主控');
+        row.className = 'message-row ' + (isMe ? 'right msg-me' : 'left ' + (isMsgHost ? 'msg-host' : 'msg-other'));
+
+        let avatarText = role === '主控' ? '🎮' : role.replace('小组', '');
 
         if (isMe) {
-            row.innerHTML = `<div class="content-div"><div class="bubble">${text}</div></div>`;
+            row.innerHTML = '<div class="content-div"><div class="bubble">' + text + '</div></div>';
         } else {
-            row.innerHTML = `<div class="avatar">${avatarText}</div><div class="content-div"><div class="name-tag">${role}</div><div class="bubble">${text}</div></div>`;
+            row.innerHTML = '<div class="avatar">' + avatarText + '</div><div class="content-div"><div class="name-tag">' + role + '</div><div class="bubble">' + text + '</div></div>';
         }
         chatArea.appendChild(row);
         chatArea.scrollTop = chatArea.scrollHeight;
@@ -292,7 +278,6 @@
     }
 
     inputBox.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendChat(); });
-
 </script>
 </body>
 </html>
