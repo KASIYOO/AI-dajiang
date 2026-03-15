@@ -7,7 +7,6 @@
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
-
         :root {
             --bg-color: #F4F7FE; --card-bg: #FFFFFF;
             --primary: #6C5CE7; --primary-hover: #5b4bc4;
@@ -16,9 +15,7 @@
             --shadow-soft: 0px 10px 25px rgba(112, 144, 176, 0.08);
             --font-family: 'Nunito', -apple-system, sans-serif;
         }
-
         body { margin: 0; padding: 0; font-family: var(--font-family); background-color: var(--bg-color); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-
         #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(244, 247, 254, 0.95); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
         .login-box { background: white; padding: 30px; border-radius: 24px; box-shadow: var(--shadow-soft); text-align: center; width: 85%; max-width: 350px; }
         .login-box h2 { color: var(--text-main); margin-top: 0; }
@@ -28,46 +25,37 @@
         .role-btn.host-btn { background: linear-gradient(135deg, #FFD194 0%, #FFB347 100%); color: #5D4037; border: none; }
         .role-btn.host-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,179,71,0.4); }
         .role-divider { font-size: 12px; color: var(--text-sub); margin: 15px 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
-
         .header { background: rgba(244, 247, 254, 0.8); backdrop-filter: blur(20px); padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; z-index: 10; border-bottom: 1px solid rgba(0,0,0,0.05); }
         .header-title { font-weight: 800; font-size: 17px; color: var(--text-main); }
         .header-sub { font-size: 12px; color: var(--success); font-weight: 700; }
-
         .chat-area { flex: 1; padding: 20px 20px 100px 20px; overflow-y: auto; scroll-behavior: smooth; }
         .message-row { display: flex; margin-bottom: 24px; align-items: flex-end; animation: slideUp 0.3s ease; }
         @keyframes slideUp { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)} }
         .message-row.left { flex-direction: row; justify-content: flex-start; }
         .message-row.right { flex-direction: row-reverse; justify-content: flex-start; }
-
         .avatar { width: 36px; height: 36px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: white; flex-shrink: 0; margin-bottom: 4px; box-shadow: var(--shadow-soft); }
         .content-div { max-width: 80%; display: flex; flex-direction: column; }
         .message-row.left .content-div { align-items: flex-start; margin-left: 12px; }
         .message-row.right .content-div { align-items: flex-end; margin-right: 12px; }
         .name-tag { font-size: 12px; font-weight: 700; color: var(--text-sub); margin-bottom: 6px; margin-left: 4px; }
-
         .bubble { padding: 14px 18px; position: relative; font-size: 15px; font-weight: 600; line-height: 1.6; word-wrap: break-word; box-shadow: var(--shadow-soft); }
         .msg-sys .avatar { background: linear-gradient(135deg, #FF758C 0%, #FF7EB3 100%); font-size: 12px;}
         .msg-other .avatar { background: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%); }
         .msg-host .avatar { background: linear-gradient(135deg, #FFD194 0%, #FFB347 100%); }
         .message-row.left .bubble { background-color: var(--card-bg); color: var(--text-main); border-radius: 20px 20px 20px 4px; }
-
         .msg-me .avatar { display: none; }
         .message-row.right .bubble { background: linear-gradient(135deg, var(--primary) 0%, #9D89FF 100%); color: #ffffff; border-radius: 20px 20px 4px 20px; }
-
         .options-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; width: 100%; }
         .option-btn { background: #F8F9FA; border: 2px solid transparent; border-radius: 16px; padding: 14px 10px; font-size: 16px; font-weight: 800; color: var(--text-main); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; transition: 0.2s;}
         .option-btn span { font-size: 12px; font-weight: 600; color: var(--text-sub); }
         .option-btn:hover { border-color: var(--primary); background: #F0EDFF; color: var(--primary); }
         .option-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
         .action-link-btn { margin-top: 12px; display: inline-block; padding: 14px 20px; background: var(--primary); color: white; border: none; border-radius: 20px; font-size: 15px; font-weight: 800; cursor: pointer; width: 100%; text-align: center; transition: 0.2s;}
         .action-link-btn:disabled { background: var(--text-sub); cursor: not-allowed; }
-
         .footer-wrapper { position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 20px 25px 20px; background: linear-gradient(to bottom, rgba(244,247,254,0), rgba(244,247,254,1) 40%); }
         .footer { background-color: var(--card-bg); border-radius: 25px; padding: 6px 6px 6px 15px; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 30px rgba(112, 144, 176, 0.15); }
         .input-box { flex: 1; border: none; outline: none; font-size: 15px; font-weight: 600; background: transparent; padding: 10px 0; color: var(--text-main); font-family: var(--font-family); }
         .send-btn { background: var(--primary); color: white; border: none; width: 40px; height: 40px; border-radius: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
-
         .highlight-clue { display: block; margin-top: 12px; padding: 12px 16px; border-radius: 16px; background: linear-gradient(135deg, #FFD194 0%, #70E1F5 100%); color: #1A365D; font-weight: 800; text-align: center; }
         .hint-text { color: var(--danger); font-size: 13px; font-weight: 700; margin-top: 10px; background: #FFF0F0; padding: 10px; border-radius: 12px; border-left: 4px solid var(--danger);}
     </style>
@@ -78,12 +66,12 @@
         <div class="login-box">
             <h2>选择你的身份</h2>
             <p>本房间需要4组齐聚才能通关<br>请与其他成员协商，不要选择重复的身份</p>
-            <button class="role-btn host-btn" onclick="joinRoom('主控')">🎮 主控（不答题，控制流程）</button>
+            <button class="role-btn host-btn" id="btnHost">🎮 主控（不答题，控制流程）</button>
             <div class="role-divider">— 答题小组 —</div>
-            <button class="role-btn" onclick="joinRoom('小组A')">👥 小组A</button>
-            <button class="role-btn" onclick="joinRoom('小组B')">👥 小组B</button>
-            <button class="role-btn" onclick="joinRoom('小组C')">👥 小组C</button>
-            <button class="role-btn" onclick="joinRoom('小组D')">👥 小组D</button>
+            <button class="role-btn" id="btnA">👥 小组A</button>
+            <button class="role-btn" id="btnB">👥 小组B</button>
+            <button class="role-btn" id="btnC">👥 小组C</button>
+            <button class="role-btn" id="btnD">👥 小组D</button>
         </div>
     </div>
 
@@ -100,21 +88,21 @@
     <div class="footer-wrapper">
         <div class="footer">
             <input type="text" class="input-box" id="inputBox" placeholder="和队友聊点什么...">
-            <button class="send-btn" id="sendBtn" onclick="sendChat()">
+            <button class="send-btn" id="sendBtn">
                 <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="white"/></svg>
             </button>
         </div>
     </div>
 
 <script>
-    const questions = [
+    var questions = [
         { q: "<b>LEVEL 1</b><br>在长网造纸机成形过程中，浆料从流浆箱喷射到铜网上的角度主要影响的是什么？", ans: "B", hint: "喷射角度直接影响纤维在网上的分布和定向，进而影响纸张的纵横向强度比。", clue: "线索一：薄如蝉翼 🦋" },
         { q: "<b>LEVEL 2</b><br>造纸成形工艺中，产生"勾浆"现象最可能导致纸张出现什么缺陷？", ans: "A", hint: "勾浆通常指纤维絮聚或杂质堵塞流浆箱唇口，导致浆料断流，在纸页上形成孔洞或透光点。", clue: "线索二：柔中带刚 🗡️" },
         { q: "<b>LEVEL 3</b><br>长网造纸机网部脱水的主要原理是依靠什么？", ans: "B", hint: "网部脱水初期靠重力，后期主要靠真空箱的负压抽吸，使湿纸页成形。", clue: "线索三：两面有别 🎭" },
         { q: "<b>LEVEL 4</b><br>在造纸湿部化学中，添加"助留剂"的主要作用是？", ans: "C", hint: "助留剂通常为高分子聚合物，通过絮凝作用使细小纤维和填料保留在纸页中，减少流失。", clue: "线索四：绝不导电 ⚡" },
         { q: "<b>LEVEL 5</b><br>生产过程中，去除浆料中金属离子（如铁、铜）的关键工序通常是？", ans: "B", hint: "通过锥形除渣器、压力筛等筛选净化设备，利用离心或过滤原理去除浆料中的重杂质和金属颗粒。", clue: "线索五：浸水不散 💧" }
     ];
-    const qOptions = [
+    var qOptions = [
         ["纸张的定量", "纤维定向排列", "纸张的含水量", "烘缸温度控制"],
         ["透光点(孔洞)", "厚薄不均", "尘埃度过高", "静电积累"],
         ["烘缸的热量蒸发", "真空箱抽吸和重力", "压辊的机械挤压", "刮刀的剪切力"],
@@ -122,155 +110,203 @@
         ["打浆", "筛选和净化", "压光", "复卷"]
     ];
 
-    let myRole = "";
-    let currentQIndex = 0;
-    let roomAnswers = {};
-    let answerRoles = ['小组A', '小组B', '小组C', '小组D'];
-    let isHost = false;
+    var myRole = "";
+    var currentQIndex = 0;
+    var roomAnswers = {};
+    var answerRoles = ["小组A", "小组B", "小组C", "小组D"];
+    var isHost = false;
+    var mqttReady = false;
 
-    const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
-    const ROOM_TOPIC = 'dajiang_training_room_ABCD_01';
+    var chatArea = document.getElementById("chatArea");
+    var inputBox = document.getElementById("inputBox");
 
-    const chatArea = document.getElementById('chatArea');
-    const inputBox = document.getElementById('inputBox');
+    // MQTT 连接
+    var client = mqtt.connect("wss://broker.emqx.io:8084/mqtt");
+    var ROOM_TOPIC = "dajiang_training_room_ABCD_01";
 
-    function joinRoom(role) {
-        myRole = role;
-        isHost = (role === '主控');
-        document.getElementById('loginOverlay').style.display = 'none';
-        document.getElementById('myRoleTag').innerText = myRole;
-
-        publishNetMsg({ type: 'CHAT', role: myRole, text: isHost ? '主控已上线，准备开始实训！' : '设备连接成功，已就位！' });
-
-        if (isHost) {
-            setTimeout(() => {
-                appendSysMsg('全员到齐后，请点击下方按钮激活题库系统。<br><button class="action-link-btn" onclick="startSystem()">🚀 激活题库系统</button>');
-            }, 1000);
-        } else {
-            appendSysMsg('等待 <b>主控</b> 激活系统...');
-        }
-    }
-
-    client.on('connect', () => {
-        document.getElementById('statusText').innerText = '🟢 已连接服务器';
+    client.on("connect", function() {
+        mqttReady = true;
+        document.getElementById("statusText").innerText = "🟢 已连接服务器";
         client.subscribe(ROOM_TOPIC);
     });
 
-    client.on('message', (topic, message) => {
-        const data = JSON.parse(message.toString());
+    client.on("error", function(err) {
+        document.getElementById("statusText").innerText = "🔴 连接失败";
+        console.error("MQTT error:", err);
+    });
 
-        if (data.type === 'CHAT') {
+    // 绑定登录按钮事件
+    document.getElementById("btnHost").addEventListener("click", function() { joinRoom("主控"); });
+    document.getElementById("btnA").addEventListener("click", function() { joinRoom("小组A"); });
+    document.getElementById("btnB").addEventListener("click", function() { joinRoom("小组B"); });
+    document.getElementById("btnC").addEventListener("click", function() { joinRoom("小组C"); });
+    document.getElementById("btnD").addEventListener("click", function() { joinRoom("小组D"); });
+
+    function joinRoom(role) {
+        if (!mqttReady) {
+            alert("服务器尚未连接，请稍等几秒再试...");
+            return;
+        }
+        myRole = role;
+        isHost = (role === "主控");
+        document.getElementById("loginOverlay").style.display = "none";
+        document.getElementById("myRoleTag").innerText = myRole;
+
+        var joinText = isHost ? "主控已上线，准备开始实训！" : "设备连接成功，已就位！";
+        publishNetMsg({ type: "CHAT", role: myRole, text: joinText });
+
+        if (isHost) {
+            setTimeout(function() {
+                showStartButton();
+            }, 1000);
+        } else {
+            appendSysMsg("等待 <b>主控</b> 激活系统...");
+        }
+    }
+
+    function showStartButton() {
+        var html = '全员到齐后，请点击下方按钮激活题库系统。<br><button class="action-link-btn" id="startBtn">🚀 激活题库系统</button>';
+        appendSysMsg(html);
+        setTimeout(function() {
+            var btn = document.getElementById("startBtn");
+            if (btn) btn.addEventListener("click", function() { publishNetMsg({ type: "START" }); });
+        }, 100);
+    }
+
+    // 接收消息
+    client.on("message", function(topic, message) {
+        var data = JSON.parse(message.toString());
+
+        if (data.type === "CHAT") {
             appendUserMsg(data.role, data.text);
         }
 
-        else if (data.type === 'START' || data.type === 'NEXT') {
-            if (data.type === 'START') currentQIndex = 0;
+        else if (data.type === "START" || data.type === "NEXT") {
+            if (data.type === "START") currentQIndex = 0;
             else currentQIndex++;
 
             roomAnswers = {};
             disableOldButtons();
 
+            var qText = "<b>系统通知</b>：进入第 " + (currentQIndex + 1) + " 关！<br><br>" + questions[currentQIndex].q;
+
             if (isHost) {
-                // 主控看到题目但没有选项按钮
-                appendSysMsg('<b>系统通知</b>：进入第 ' + (currentQIndex + 1) + ' 关！<br><br>' + questions[currentQIndex].q + '<br><br><span style="color:var(--text-sub);font-size:13px;">⏳ 等待四组提交答案...</span>');
+                qText += '<br><br><span style="color:var(--text-sub);font-size:13px;">⏳ 等待四组提交答案...</span>';
+                appendSysMsg(qText);
             } else {
-                appendSysMsg('<b>系统通知</b>：进入第 ' + (currentQIndex + 1) + ' 关！<br><br>' + questions[currentQIndex].q + getOptionsHTML(currentQIndex));
+                qText += getOptionsHTML(currentQIndex);
+                appendSysMsg(qText);
+                bindOptionButtons();
             }
         }
 
-        else if (data.type === 'ANSWER') {
+        else if (data.type === "ANSWER") {
             roomAnswers[data.role] = data.ans;
-            appendUserMsg(data.role, '提交了答案：<b>选项 ' + data.ans + '</b>');
+            appendUserMsg(data.role, "提交了答案：<b>选项 " + data.ans + "</b>");
 
-            // 主控端负责判卷
             if (isHost && Object.keys(roomAnswers).length === answerRoles.length) {
                 checkAnswers();
             }
         }
 
-        else if (data.type === 'JUDGE_PASS') {
-            let reply = '四组答案一致且正确，校验通过 ✅<div class="highlight-clue">🔑 获得 ' + questions[currentQIndex].clue + '</div>';
+        else if (data.type === "JUDGE_PASS") {
+            var reply = '四组答案一致且正确，校验通过 ✅<div class="highlight-clue">🔑 获得 ' + questions[currentQIndex].clue + '</div>';
             if (currentQIndex === questions.length - 1) {
                 reply += '<br><br>🎉 <b>实训圆满成功！</b><br>你们已集齐所有秘籍，密室大门已开启！';
                 appendSysMsg(reply);
             } else {
                 if (isHost) {
-                    reply += '<button class="action-link-btn" onclick="goNext()">进入下一关 ➡️</button>';
+                    reply += '<button class="action-link-btn" id="nextBtn">进入下一关 ➡️</button>';
                 } else {
                     reply += '<br><span style="color:#888;font-size:12px;">等待 主控 开启下一关...</span>';
                 }
                 appendSysMsg(reply);
+                if (isHost) {
+                    setTimeout(function() {
+                        var btn = document.getElementById("nextBtn");
+                        if (btn) btn.addEventListener("click", function() { publishNetMsg({ type: "NEXT" }); });
+                    }, 100);
+                }
             }
         }
 
-        else if (data.type === 'JUDGE_FAIL') {
+        else if (data.type === "JUDGE_FAIL") {
             roomAnswers = {};
-            appendSysMsg('⚠️ 答案不一致或存在错误，全员校验失败！<div class="hint-text"><b>💡 知识库提示：</b><br>' + questions[currentQIndex].hint + '</div>请大家在群里讨论后，重新点击上方卡片提交！');
+            var failHtml = '⚠️ 答案不一致或存在错误，全员校验失败！<div class="hint-text"><b>💡 知识库提示：</b><br>' + questions[currentQIndex].hint + '</div>请大家在群里讨论后，重新点击上方卡片提交！';
+            appendSysMsg(failHtml);
         }
     });
 
-    function startSystem() {
-        publishNetMsg({ type: 'START' });
-    }
-
-    function goNext() {
-        publishNetMsg({ type: 'NEXT' });
-    }
-
     function publishNetMsg(payload) {
-        client.publish(ROOM_TOPIC, JSON.stringify(payload));
-    }
-
-    function sendChat() {
-        const text = inputBox.value.trim();
-        if (text) {
-            publishNetMsg({ type: 'CHAT', role: myRole, text: text });
-            inputBox.value = '';
+        if (mqttReady) {
+            client.publish(ROOM_TOPIC, JSON.stringify(payload));
         }
     }
 
-    function selectOption(ans) {
-        if (isHost) return; // 主控不能答题
+    function sendChat() {
+        var text = inputBox.value.trim();
+        if (text && myRole) {
+            publishNetMsg({ type: "CHAT", role: myRole, text: text });
+            inputBox.value = "";
+        }
+    }
+
+    function selectAnswer(ans) {
+        if (isHost) return;
         if (roomAnswers[myRole]) return;
-        publishNetMsg({ type: 'ANSWER', role: myRole, ans: ans });
+        publishNetMsg({ type: "ANSWER", role: myRole, ans: ans });
     }
 
     function checkAnswers() {
-        let allCorrect = true;
-        for (let r of answerRoles) {
-            if (roomAnswers[r] !== questions[currentQIndex].ans) {
+        var allCorrect = true;
+        for (var i = 0; i < answerRoles.length; i++) {
+            if (roomAnswers[answerRoles[i]] !== questions[currentQIndex].ans) {
                 allCorrect = false;
                 break;
             }
         }
-        publishNetMsg({ type: allCorrect ? 'JUDGE_PASS' : 'JUDGE_FAIL' });
+        publishNetMsg({ type: allCorrect ? "JUDGE_PASS" : "JUDGE_FAIL" });
     }
 
     function getOptionsHTML(qIndex) {
-        const opts = qOptions[qIndex];
+        var opts = qOptions[qIndex];
         return '<div class="options-container">' +
-            '<button class="option-btn" onclick="selectOption(\'A\')">A<span>' + opts[0] + '</span></button>' +
-            '<button class="option-btn" onclick="selectOption(\'B\')">B<span>' + opts[1] + '</span></button>' +
-            '<button class="option-btn" onclick="selectOption(\'C\')">C<span>' + opts[2] + '</span></button>' +
-            '<button class="option-btn" onclick="selectOption(\'D\')">D<span>' + opts[3] + '</span></button>' +
+            '<button class="option-btn" data-ans="A">A<span>' + opts[0] + '</span></button>' +
+            '<button class="option-btn" data-ans="B">B<span>' + opts[1] + '</span></button>' +
+            '<button class="option-btn" data-ans="C">C<span>' + opts[2] + '</span></button>' +
+            '<button class="option-btn" data-ans="D">D<span>' + opts[3] + '</span></button>' +
             '</div>';
     }
 
+    function bindOptionButtons() {
+        setTimeout(function() {
+            var btns = document.querySelectorAll(".option-btn:not([disabled])");
+            btns.forEach(function(btn) {
+                if (!btn.dataset.bound) {
+                    btn.dataset.bound = "true";
+                    btn.addEventListener("click", function() {
+                        selectAnswer(this.dataset.ans);
+                    });
+                }
+            });
+        }, 100);
+    }
+
     function appendSysMsg(text) {
-        const row = document.createElement('div');
-        row.className = 'message-row left msg-sys';
+        var row = document.createElement("div");
+        row.className = "message-row left msg-sys";
         row.innerHTML = '<div class="avatar">AI</div><div class="content-div"><div class="name-tag">AI 导师</div><div class="bubble">' + text + '</div></div>';
         chatArea.appendChild(row);
         chatArea.scrollTop = chatArea.scrollHeight;
     }
 
     function appendUserMsg(role, text) {
-        const row = document.createElement('div');
-        const isMe = (role === myRole);
-        const isMsgHost = (role === '主控');
-        row.className = 'message-row ' + (isMe ? 'right msg-me' : 'left ' + (isMsgHost ? 'msg-host' : 'msg-other'));
+        var row = document.createElement("div");
+        var isMe = (role === myRole);
+        var isMsgHost = (role === "主控");
+        row.className = "message-row " + (isMe ? "right msg-me" : "left " + (isMsgHost ? "msg-host" : "msg-other"));
 
-        let avatarText = role === '主控' ? '🎮' : role.replace('小组', '');
+        var avatarText = (role === "主控") ? "🎮" : role.replace("小组", "");
 
         if (isMe) {
             row.innerHTML = '<div class="content-div"><div class="bubble">' + text + '</div></div>';
@@ -282,10 +318,12 @@
     }
 
     function disableOldButtons() {
-        document.querySelectorAll('.option-btn, .action-link-btn').forEach(b => b.disabled = true);
+        document.querySelectorAll(".option-btn, .action-link-btn").forEach(function(b) { b.disabled = true; });
     }
 
-    inputBox.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendChat(); });
+    // 绑定发送按钮和回车
+    document.getElementById("sendBtn").addEventListener("click", sendChat);
+    inputBox.addEventListener("keypress", function(e) { if (e.key === "Enter") sendChat(); });
 </script>
 </body>
 </html>
