@@ -277,17 +277,11 @@
                 appendSysMsg(reply);
             } else {
                 if (isHost) {
-                    reply += '<button class="action-link-btn" id="nextBtn">\u8fdb\u5165\u4e0b\u4e00\u5173 \u27a1\ufe0f</button>';
+                    reply += '<button class="action-link-btn" onclick="this.disabled=true;publishNetMsg({type:\'NEXT\'})">\u8fdb\u5165\u4e0b\u4e00\u5173 \u27a1\ufe0f</button>';
                 } else {
                     reply += '<br><span style="color:#888;font-size:12px;">\u7b49\u5f85 \u4e3b\u63a7 \u5f00\u542f\u4e0b\u4e00\u5173...</span>';
                 }
                 appendSysMsg(reply);
-                if (isHost) {
-                    setTimeout(function() {
-                        var btn = document.getElementById("nextBtn");
-                        if (btn) btn.addEventListener("click", function() { publishNetMsg({ type: "NEXT" }); });
-                    }, 100);
-                }
             }
         }
 
